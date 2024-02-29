@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:mvc="http://www.springframework.org/schema/mvc"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+                http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                http://www.springframework.org/schema/context
+                http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                http://www.springframework.org/schema/mvc
+                http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+    <!-- Activates various annotations to be detected in bean classes -->
+    <context:annotation-config />
+
+    <!-- scans packages to register controllers using annotations -->
+    <context:component-scan base-package="com.online.files.upload" />
+
+    <!-- support for mvc-annotation -->
+    <mvc:annotation-driven />
+
+    <!-- Need to add VM Argument -Duser.dir=$USER_HOME_DIR -->
+    <!-- mvn clean install -Duser.dir=$USER_HOME_DIR -->
+    <bean id="filesStorageService" class="com.online.files.upload.FilesStorageService" init-method="init"/>
+
+    <beans profile="development">
+        <!-- Need to add VM Argument -Dspring.profiles.active="development" -->
+        <!-- mvn clean install -Dspring.profiles.active="development" -->
+        <mvc:cors>
+            <mvc:mapping path="/**"
+                         allowed-origins="http://localhost:8080"
+                         allowed-methods="GET, POST, UPDATE, CREATE, DELETE"/>
+        </mvc:cors>
+    </beans>
+
+    <beans profile="release">
+        <!-- Need to add VM Argument -Dspring.profiles.active="release" -->
+        <!-- mvn clean install -Dspring.profiles.active="release" -->
+        <mvc:cors>
+            <mvc:mapping path="/**"
+                         allowed-origins="http://localhost:8080"
+                         allowed-methods="GET, POST, UPDATE, CREATE, DELETE"/>
+        </mvc:cors>
+    </beans>
+
+    <beans>
+        <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+            <!-- The maximum file size 5MB (1024 * 1024 * 5) in bytes -->
+            <property name="maxUploadSize" value="5000000"/>
+        </bean>
+    </beans>
+
+</beans>
