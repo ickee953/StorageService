@@ -17,6 +17,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @Controller
@@ -25,7 +33,7 @@ public class FilesController {
     @Autowired
     FilesStorageService storageService;
 
-    @RequestMapping(
+    /*@RequestMapping(
             value = "/upload",
             method = RequestMethod.POST,
             produces = MULTIPART_FORM_DATA_VALUE
@@ -40,6 +48,39 @@ public class FilesController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(file.getOriginalFilename());
         }
+    }*/
+    
+    @RequestMapping(
+	value = "/upload",
+	method = RequestMethod.POST,
+	produces = MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<String> uploadFile(
+	    @RequestPart(name = "files", required = true) List<MultipartFile> files
+    ) {
+	    if( !files.isEmpty() ){
+            List<String> uploadedUrls = new LinkedList<>();
+            Phaser       phase        = new Phaser(1);
+
+	        files.forEach(file-> {
+	            phase.register();
+
+                new Thread(() -> {
+                    String uploadedFilename = storageService.save(file);
+                    uploadedUrls.add(uploadedFilename);
+                    phase.arriveAndDeregister();
+                }).start();
+
+	        } );
+
+	        phase.arriveAndAwaitAdvance();
+	        String result = uploadedUrls.stream().map(Object::toString).collect(Collectors.joining(","));
+
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+	    }
+
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(null);
+
     }
 
     @GetMapping("/files/{filename:.+}")
