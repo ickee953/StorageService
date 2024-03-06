@@ -20,9 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Phaser;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -51,9 +48,9 @@ public class FilesController {
     }*/
     
     @RequestMapping(
-	value = "/upload",
-	method = RequestMethod.POST,
-	produces = MULTIPART_FORM_DATA_VALUE
+	    value = "/upload",
+	    method = RequestMethod.POST,
+	    produces = MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<String> uploadFile(
 	    @RequestPart(name = "files", required = true) List<MultipartFile> files
