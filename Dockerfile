@@ -1,3 +1,4 @@
-FROM openjdk:17-jdk-alpine
-COPY target/storage_service-1.0-SNAPSHOT.jar storage_service-1.0-SNAPSHOT.jar
-ENTRYPOINT ["java","-jar","/storage_service-1.0-SNAPSHOT.jar"]
+FROM rsunix/yourkit-openjdk17:latest
+COPY target/storage_service-1.0-SNAPSHOT.jar /usr/src/storage_service-1.0-SNAPSHOT.jar
+WORKDIR /usr/src
+ENTRYPOINT ["java","-jar","/usr/src/storage_service-1.0-SNAPSHOT.jar"]
