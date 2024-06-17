@@ -30,23 +30,6 @@ public class FilesController {
     @Autowired
     FilesStorageService storageService;
 
-    /*@RequestMapping(
-            value = "/upload",
-            method = RequestMethod.POST,
-            produces = MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> uploadFile(
-            @RequestPart("file") MultipartFile file
-    ) {
-        try {
-            String fileName = storageService.save(file);
-
-            return ResponseEntity.status(HttpStatus.OK).body(fileName);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(file.getOriginalFilename());
-        }
-    }*/
-    
     @RequestMapping(
 	    value = "/upload",
 	    method = RequestMethod.POST,

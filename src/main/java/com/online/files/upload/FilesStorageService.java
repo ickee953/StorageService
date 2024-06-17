@@ -20,10 +20,11 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 @Service
 public class FilesStorageService {
-    private static Logger LOGGER = LoggerFactory.getLogger(FilesStorageService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FilesStorageService.class);
 
     private final String UPLOAD_DIR = "/uploads";
 
@@ -33,19 +34,17 @@ public class FilesStorageService {
         try {
             Files.createDirectory(root);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append(root.toString());
-            sb.append(" created.\n");
+            String sb = root.toString() +
+                    " created.\n";
 
-            LOGGER.info(sb.toString());
+            LOGGER.info(sb);
         } catch (IOException e) {
             if( e instanceof FileAlreadyExistsException ){
-                StringBuilder sb = new StringBuilder();
-                sb.append("File: ");
-                sb.append(root.toUri());
-                sb.append(" already exist.\n");
+                String sb = "File: " +
+                        root.toUri() +
+                        " already exist.\n";
 
-                LOGGER.info(sb.toString());
+                LOGGER.info(sb);
             } else {
               String msg = "Could not initialize folder for upload!\n";
               LOGGER.error( msg );
@@ -57,17 +56,18 @@ public class FilesStorageService {
 
     public String save(MultipartFile file) {
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
+            Files.copy(file.getInputStream(),
+                    this.root.resolve(Objects.requireNonNull(file.getOriginalFilename()))
+            );
 
             return file.getOriginalFilename();
         } catch (Exception e) {
             if( e instanceof FileAlreadyExistsException ){
-                LOGGER.info("File with name " + file.getOriginalFilename() + " already exist.\nReplacing...\n");
+                LOGGER.info("File with name {} already exist.\nReplacing...\n", file.getOriginalFilename());
                 try {
-                    Files.delete( this.root.resolve(file.getOriginalFilename()) );
+                    Files.delete( this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())) );
                 } catch (IOException ex) {
-                    LOGGER.error("Could not delete the file: " + file.getOriginalFilename() + ".\n" + ex.getMessage());
-                    ex.printStackTrace();
+                    LOGGER.error("Could not delete the file: {}.\n{}", file.getOriginalFilename(), ex.getMessage());
 
                     throw new RuntimeException( ex.getMessage() );
                 }
