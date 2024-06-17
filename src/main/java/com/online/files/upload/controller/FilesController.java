@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -38,28 +39,37 @@ public class FilesController {
     public ResponseEntity<String> uploadFile(
 	    @RequestPart(name = "files", required = true) List<MultipartFile> files
     ) {
+        AtomicReference<HttpStatus> status = new AtomicReference<>(HttpStatus.EXPECTATION_FAILED);
 	    if( !files.isEmpty() ){
             List<String> uploadedUrls = new LinkedList<>();
             Phaser       phase        = new Phaser(1);
 
-	        files.forEach(file-> {
-	            phase.register();
+            synchronized (status) {
+                files.forEach(file-> {
+                    phase.register();
 
-                new Thread(() -> {
-                    String uploadedFilename = storageService.save(file);
-                    uploadedUrls.add(uploadedFilename);
-                    phase.arriveAndDeregister();
-                }).start();
+                    new Thread(() -> {
+                        try {
+                            String uploadedFilename = storageService.save(file);
+                            uploadedUrls.add(uploadedFilename);
+                            status.set(HttpStatus.OK);
+                        } catch(RuntimeException e) {
+                            status.set(HttpStatus.EXPECTATION_FAILED);
+                        } finally {
+                            phase.arriveAndDeregister();
+                        }
+                    }).start();
 
-	        } );
+                } );
+            }
 
 	        phase.arriveAndAwaitAdvance();
 	        String result = uploadedUrls.stream().map(Object::toString).collect(Collectors.joining(","));
 
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            return ResponseEntity.status(status.get()).body(result);
 	    }
 
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(null);
+        return ResponseEntity.status(status.get()).body(null);
 
     }
 

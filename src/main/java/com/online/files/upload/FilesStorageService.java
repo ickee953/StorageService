@@ -54,7 +54,7 @@ public class FilesStorageService {
         }
     }
 
-    public String save(MultipartFile file) {
+    public String save(MultipartFile file) throws RuntimeException {
         try {
             Files.copy(file.getInputStream(),
                     this.root.resolve(Objects.requireNonNull(file.getOriginalFilename()))
