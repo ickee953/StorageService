@@ -44,24 +44,20 @@ public class FilesController {
             List<String> uploadedUrls = new LinkedList<>();
             Phaser       phase        = new Phaser(1);
 
-            synchronized (status) {
-                files.forEach(file-> {
-                    phase.register();
-
-                    new Thread(() -> {
-                        try {
-                            String uploadedFilename = storageService.save(file);
-                            uploadedUrls.add(uploadedFilename);
-                            status.set(HttpStatus.OK);
-                        } catch(RuntimeException e) {
-                            status.set(HttpStatus.EXPECTATION_FAILED);
-                        } finally {
-                            phase.arriveAndDeregister();
-                        }
-                    }).start();
-
-                } );
-            }
+            status.set(HttpStatus.OK);
+            files.forEach(file-> {
+                phase.register();
+                new Thread(() -> {
+                    try {
+                        String uploadedFilename = storageService.save(file);
+                        uploadedUrls.add(uploadedFilename);
+                    } catch(RuntimeException e) {
+                        status.set(HttpStatus.EXPECTATION_FAILED);
+                    } finally {
+                        phase.arriveAndDeregister();
+                    }
+                }).start();
+            } );
 
 	        phase.arriveAndAwaitAdvance();
 	        String result = uploadedUrls.stream().map(Object::toString).collect(Collectors.joining(","));
