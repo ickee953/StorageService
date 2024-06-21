@@ -5,7 +5,7 @@
  * Proprietary and confidential
  */
 
-package com.online.files.upload;
+package com.github.ickee953.micros.storage.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

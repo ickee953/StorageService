@@ -5,9 +5,9 @@
  * Proprietary and confidential
  */
 
-package com.online.files.upload.controller;
+package com.github.ickee953.micros.storage.controller;
 
-import com.online.files.upload.FilesStorageService;
+import com.github.ickee953.micros.storage.service.FilesStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
