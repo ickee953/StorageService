@@ -7,7 +7,7 @@
 
 package com.github.ickee953.micros.storage.service;
 
-import com.github.ickee953.micros.common.SaveStatus;
+import com.github.ickee953.micros.common.SavedStatus;
 import com.github.ickee953.micros.common.SavedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,11 +66,11 @@ public class FileService implements StorageService {
      * NOT_SAVED - file not saved
      *
      * */
-    public SavedResult<String, SaveStatus> save(MultipartFile file) {
+    public SavedResult<String, SavedStatus> save(MultipartFile file) {
         try {
             Files.copy(file.getInputStream(), this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())));
 
-            return new SavedResult<>(file.getOriginalFilename(), SaveStatus.OK);
+            return new SavedResult<>(file.getOriginalFilename(), SavedStatus.OK);
         } catch (Exception e) {
             if( e instanceof FileAlreadyExistsException ){
                 LOGGER.info("File with name {} already exist. Replacing...", file.getOriginalFilename());
@@ -79,10 +79,10 @@ public class FileService implements StorageService {
                 } catch (IOException ex) {
                     LOGGER.error("Could not delete the file: {}, {}", file.getOriginalFilename(), ex.getMessage());
 
-                    return new SavedResult<>(file.getOriginalFilename(), SaveStatus.ERR_REPLACING);
+                    return new SavedResult<>(file.getOriginalFilename(), SavedStatus.ERR_REPLACING);
                 }
-                SavedResult<String, SaveStatus> replaced = save( file );
-                if( replaced.getStatus() == SaveStatus.OK ) {
+                SavedResult<String, SavedStatus> replaced = save( file );
+                if( replaced.getStatus() == SavedStatus.OK ) {
                     LOGGER.info("File replaced: {}", file.getOriginalFilename());
                 }
 
@@ -93,7 +93,7 @@ public class FileService implements StorageService {
                 LOGGER.error( message );
             }
 
-            return new SavedResult<>(file.getOriginalFilename(), SaveStatus.NOT_SAVED);
+            return new SavedResult<>(file.getOriginalFilename(), SavedStatus.NOT_SAVED);
         }
     }
 

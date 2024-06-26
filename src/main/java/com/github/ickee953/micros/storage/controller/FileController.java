@@ -7,7 +7,7 @@
 
 package com.github.ickee953.micros.storage.controller;
 
-import com.github.ickee953.micros.common.SaveStatus;
+import com.github.ickee953.micros.common.SavedStatus;
 import com.github.ickee953.micros.common.SavedResult;
 import com.github.ickee953.micros.storage.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class FileController {
             files.forEach(file-> {
                 phase.register();
                 new Thread(() -> {
-                    SavedResult<String, SaveStatus> uploaded = storageService.save(file);
+                    SavedResult<String, SavedStatus> uploaded = storageService.save(file);
 
                     switch ( uploaded.getStatus() ) {
                         case OK -> uploadedUrls.add(uploaded.getResource());
