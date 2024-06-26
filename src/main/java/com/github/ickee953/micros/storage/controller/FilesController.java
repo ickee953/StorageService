@@ -42,30 +42,44 @@ public class FilesController {
         AtomicReference<HttpStatus> status = new AtomicReference<>(HttpStatus.EXPECTATION_FAILED);
 	    if( !files.isEmpty() ){
             List<String> uploadedUrls = new LinkedList<>();
+            List<String> errFilesUrls = new LinkedList<>();
             Phaser       phase        = new Phaser(1);
 
             status.set(HttpStatus.OK);
             files.forEach(file-> {
                 phase.register();
                 new Thread(() -> {
-                    try {
-                        String uploadedFilename = storageService.save(file);
-                        uploadedUrls.add(uploadedFilename);
-                    } catch(RuntimeException e) {
-                        status.set(HttpStatus.EXPECTATION_FAILED);
-                    } finally {
-                        phase.arriveAndDeregister();
+                    FilesStorageService.SavedResult<String, FilesStorageService.SaveStatus> uploaded
+                                = storageService.save(file);
+
+                    switch ( uploaded.getStatus() ) {
+                        case OK -> uploadedUrls.add(uploaded.getResource());
+                        case ERR_REPLACING, NOT_SAVED -> {
+                            errFilesUrls.add(uploaded.getResource());
+                            status.set(HttpStatus.EXPECTATION_FAILED);
+                        }
                     }
+
+                    phase.arriveAndDeregister();
+
                 }).start();
             } );
 
 	        phase.arriveAndAwaitAdvance();
-	        String result = uploadedUrls.stream().map(Object::toString).collect(Collectors.joining(","));
 
-            return ResponseEntity.status(status.get()).body(result);
+            if (status.get() == HttpStatus.OK) {
+                return ResponseEntity.ok(
+                        uploadedUrls.stream().map(Object::toString).collect(Collectors.joining(","))
+                );
+            } else {
+                return ResponseEntity.status( status.get() ).body(
+                        errFilesUrls.stream().map(Object::toString).collect(Collectors.joining(","))
+                );
+            }
+
 	    }
 
-        return ResponseEntity.status(status.get()).body(null);
+        return ResponseEntity.badRequest().build();
 
     }
 

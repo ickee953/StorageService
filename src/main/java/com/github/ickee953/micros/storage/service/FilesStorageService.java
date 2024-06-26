@@ -20,6 +20,8 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -54,30 +56,44 @@ public class FilesStorageService {
         }
     }
 
-    public String save(MultipartFile file) throws RuntimeException {
+    /**
+     * Function for save file on backend
+     *
+     * @return SavedResult with saved file name and saved status. Saved status possible with:
+     *
+     * OK - file saved
+     * ERR_REPLACING - file with this name already exist, error while replacing it
+     * NOT_SAVED - file not saved
+     *
+     * */
+    public SavedResult<String, SaveStatus> save(MultipartFile file) {
         try {
-            Files.copy(file.getInputStream(),
-                    this.root.resolve(Objects.requireNonNull(file.getOriginalFilename()))
-            );
+            Files.copy(file.getInputStream(), this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())));
 
-            return file.getOriginalFilename();
+            return new SavedResult<>(file.getOriginalFilename(), SaveStatus.OK);
         } catch (Exception e) {
             if( e instanceof FileAlreadyExistsException ){
-                LOGGER.info("File with name {} already exist.\nReplacing...\n", file.getOriginalFilename());
+                LOGGER.info("File with name {} already exist. Replacing...", file.getOriginalFilename());
                 try {
                     Files.delete( this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())) );
                 } catch (IOException ex) {
-                    LOGGER.error("Could not delete the file: {}.\n{}", file.getOriginalFilename(), ex.getMessage());
+                    LOGGER.error("Could not delete the file: {}, {}", file.getOriginalFilename(), ex.getMessage());
 
-                    throw new RuntimeException( ex.getMessage() );
+                    return new SavedResult<>(file.getOriginalFilename(), SaveStatus.ERR_REPLACING);
                 }
-                return save( file );
+                SavedResult<String, SaveStatus> replaced = save( file );
+                if( replaced.status == SaveStatus.OK ) {
+                    LOGGER.info("File replaced: {}", file.getOriginalFilename());
+                }
+
+                return replaced;
+
             } else {
                 String message = "Could not store the file. Error: " + e.getMessage();
                 LOGGER.error( message );
-
-                throw new RuntimeException( message );
             }
+
+            return new SavedResult<>(file.getOriginalFilename(), SaveStatus.NOT_SAVED);
         }
     }
 
@@ -93,6 +109,43 @@ public class FilesStorageService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * OK - file saved
+     * ERR_REPLACING - file with this name already exist, error while replacing it
+     * NOT_SAVED - file not saved
+     * */
+    public enum SaveStatus {
+        OK,
+        ERR_REPLACING,
+        NOT_SAVED
+    }
+
+    public class SavedResult<K, V> {
+        K resource;
+        V status;
+
+        public SavedResult(K resource, V status){
+            this.resource = resource;
+            this.status = status;
+        }
+
+        public K getResource() {
+            return resource;
+        }
+
+        public void setResource(K resource) {
+            this.resource = resource;
+        }
+
+        public V getStatus() {
+            return status;
+        }
+
+        public void setStatus(V status) {
+            this.status = status;
         }
     }
 }
