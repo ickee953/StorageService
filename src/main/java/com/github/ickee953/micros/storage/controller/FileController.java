@@ -7,7 +7,9 @@
 
 package com.github.ickee953.micros.storage.controller;
 
-import com.github.ickee953.micros.storage.service.FilesStorageService;
+import com.github.ickee953.micros.common.SaveStatus;
+import com.github.ickee953.micros.common.SavedResult;
+import com.github.ickee953.micros.storage.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -26,10 +28,10 @@ import java.util.stream.Collectors;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @Controller
-public class FilesController {
+public class FileController {
 
     @Autowired
-    FilesStorageService storageService;
+    StorageService storageService;
 
     @RequestMapping(
 	    value = "/upload",
@@ -49,8 +51,7 @@ public class FilesController {
             files.forEach(file-> {
                 phase.register();
                 new Thread(() -> {
-                    FilesStorageService.SavedResult<String, FilesStorageService.SaveStatus> uploaded
-                                = storageService.save(file);
+                    SavedResult<String, SaveStatus> uploaded = storageService.save(file);
 
                     switch ( uploaded.getStatus() ) {
                         case OK -> uploadedUrls.add(uploaded.getResource());

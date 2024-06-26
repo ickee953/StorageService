@@ -7,6 +7,8 @@
 
 package com.github.ickee953.micros.storage.service;
 
+import com.github.ickee953.micros.common.SaveStatus;
+import com.github.ickee953.micros.common.SavedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -20,13 +22,11 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
-public class FilesStorageService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FilesStorageService.class);
+public class FileService implements StorageService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileService.class);
 
     private final String UPLOAD_DIR = "/uploads";
 
@@ -82,7 +82,7 @@ public class FilesStorageService {
                     return new SavedResult<>(file.getOriginalFilename(), SaveStatus.ERR_REPLACING);
                 }
                 SavedResult<String, SaveStatus> replaced = save( file );
-                if( replaced.status == SaveStatus.OK ) {
+                if( replaced.getStatus() == SaveStatus.OK ) {
                     LOGGER.info("File replaced: {}", file.getOriginalFilename());
                 }
 
@@ -109,43 +109,6 @@ public class FilesStorageService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * OK - file saved
-     * ERR_REPLACING - file with this name already exist, error while replacing it
-     * NOT_SAVED - file not saved
-     * */
-    public enum SaveStatus {
-        OK,
-        ERR_REPLACING,
-        NOT_SAVED
-    }
-
-    public class SavedResult<K, V> {
-        K resource;
-        V status;
-
-        public SavedResult(K resource, V status){
-            this.resource = resource;
-            this.status = status;
-        }
-
-        public K getResource() {
-            return resource;
-        }
-
-        public void setResource(K resource) {
-            this.resource = resource;
-        }
-
-        public V getStatus() {
-            return status;
-        }
-
-        public void setStatus(V status) {
-            this.status = status;
         }
     }
 }
