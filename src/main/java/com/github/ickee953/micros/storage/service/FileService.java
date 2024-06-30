@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class FileService implements StorageService {
@@ -67,23 +68,24 @@ public class FileService implements StorageService {
      *
      * */
     public SavedResult<String, SavedStatus> save(MultipartFile file) {
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())));
+            Files.copy(file.getInputStream(), this.root.resolve(fileName));
 
-            return new SavedResult<>(file.getOriginalFilename(), SavedStatus.OK);
+            return new SavedResult<>(fileName, SavedStatus.OK);
         } catch (Exception e) {
             if( e instanceof FileAlreadyExistsException ){
-                LOGGER.info("File with name {} already exist. Replacing...", file.getOriginalFilename());
+                LOGGER.info("File with name {} already exist. Replacing...", fileName);
                 try {
-                    Files.delete( this.root.resolve(Objects.requireNonNull(file.getOriginalFilename())) );
+                    Files.delete( this.root.resolve(fileName) );
                 } catch (IOException ex) {
-                    LOGGER.error("Could not delete the file: {}, {}", file.getOriginalFilename(), ex.getMessage());
+                    LOGGER.error("Could not delete the file: {}, {}", fileName, ex.getMessage());
 
-                    return new SavedResult<>(file.getOriginalFilename(), SavedStatus.ERR_REPLACING);
+                    return new SavedResult<>(fileName, SavedStatus.ERR_REPLACING);
                 }
                 SavedResult<String, SavedStatus> replaced = save( file );
                 if( replaced.getStatus() == SavedStatus.OK ) {
-                    LOGGER.info("File replaced: {}", file.getOriginalFilename());
+                    LOGGER.info("File replaced: {}", fileName);
                 }
 
                 return replaced;
@@ -93,7 +95,7 @@ public class FileService implements StorageService {
                 LOGGER.error( message );
             }
 
-            return new SavedResult<>(file.getOriginalFilename(), SavedStatus.NOT_SAVED);
+            return new SavedResult<>(fileName, SavedStatus.NOT_SAVED);
         }
     }
 
