@@ -20,8 +20,8 @@ public class SecurityConfig {
                                 .requestMatchers( "/upload").hasRole("SERVICE")
                                 .requestMatchers("/files/*").permitAll())
                 .httpBasic(Customizer.withDefaults())
-                //.sessionManagement(sessionManagement -> sessionManagement
-                //        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
 

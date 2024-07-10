@@ -1,8 +1,8 @@
 spring:
   security:
     user:
-      name: storage_service_user
-      password: password
+      name: ${STORAGE_SERVICE_USER_NAME:storage_service_user}
+      password: ${STORAGE_SERVICE_USER_PASSWORD:password}
       roles:
         - SERVICE
   servlet:
