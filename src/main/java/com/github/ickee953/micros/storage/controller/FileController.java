@@ -35,7 +35,7 @@ public class FileController {
 
     @RequestMapping(
 	    value = "/upload",
-	    method = RequestMethod.POST,
+        method = RequestMethod.POST,
 	    produces = MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<String> uploadFile(
