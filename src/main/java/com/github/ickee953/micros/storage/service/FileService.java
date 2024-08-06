@@ -9,6 +9,7 @@ package com.github.ickee953.micros.storage.service;
 
 import com.github.ickee953.micros.common.SavedStatus;
 import com.github.ickee953.micros.common.SavedResult;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -33,6 +34,7 @@ public class FileService implements StorageService {
 
     private final Path root = Paths.get(System.getProperty("user.dir") + UPLOAD_DIR).toAbsolutePath();
 
+    @PostConstruct
     public void init() {
         try {
             Files.createDirectory(root);

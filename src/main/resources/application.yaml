@@ -10,4 +10,4 @@ spring:
       max-file-size: 5000KB
       max_request-size: 5000KB
 server:
-  port: ${SERVER_STORAGE_PORT:8080}
+  port: ${SERVER_STORAGE_PORT:8081}
